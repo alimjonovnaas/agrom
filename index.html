@@ -3,88 +3,94 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Telegram Mini App</title>
+  <title>My Telegram Mini App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body{font-family:Inter, system-ui, sans-serif; padding:20px; max-width:720px; margin:auto}
-    .card{padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
-    .avatar{width:96px;height:96px;border-radius:50%;object-fit:cover;border:2px solid #eee}
-    .row{display:flex;gap:16px;align-items:center}
-    button{padding:10px 14px;border-radius:10px;border:0;cursor:pointer}
+    body{font-family:Inter,system-ui,sans-serif;padding:20px;max-width:720px;margin:auto;background:#f8f9fa}
+    .card{padding:20px;border-radius:16px;background:white;box-shadow:0 8px 25px rgba(0,0,0,0.08)}
+    .avatar{width:100px;height:100px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+    .row{display:flex;gap:20px;align-items:center;margin-bottom:16px}
+    button{padding:12px 20px;border-radius:12px;border:0;cursor:pointer;font-weight:600;margin-right:10px}
+    .btn-primary{background:#0088cc;color:white}
+    .btn-secondary{background:#e4e6eb;color:#1c1e21}
+    #info{white-space:pre-line;color:#555;line-height:1.5}
   </style>
 </head>
 <body>
-  <h1>My Telegram Mini App</h1>
+  <h1 style="text-align:center">Telegram Mini App</h1>
   <div class="card">
     <div class="row">
-      <img id="avatar" class="avatar" src="" alt="avatar">
+      <img id="avatar" class="avatar" src="https://cdn-icons-png.flaticon.com/512/6596/6596121.png" alt="avatar">
       <div>
-        <div id="displayName" style="font-weight:700;font-size:18px">User</div>
-        <div id="username" style="color:#666">@username</div>
+        <div id="displayName" style="font-weight:700;font-size:20px">Yuklanmoqda...</div>
+        <div id="username" style="color:#777;font-size:15px">@username</div>
       </div>
     </div>
-    <hr style="margin:12px 0">
-    <div id="info" style="color:#444">Loading...</div>
-    <div style="margin-top:12px">
-      <button id="send" style="background:#007bff;color:white">Send data to bot</button>
-      <button id="close" style="background:#eee;margin-left:8px">Close</button>
+    <hr>
+    <div id="info">Ma'lumotlar yuklanmoqda...</div>
+    <div style="margin-top:20px">
+      <button id="send" class="btn-primary">Botga ma'lumot yuborish</button>
+      <button id="close" class="btn-secondary">Yopish</button>
     </div>
   </div>
 
   <script>
-    // --- safety: guard if not inside Telegram ---
-    const tg = window.Telegram?.WebApp;
-    if (!tg) {
-      document.getElementById('info').innerText = 'Open this page from your bot (inside Telegram) or use the "Open App" button in bot profile.';
-    } else {
-      try {
-        // Expand view
-        if (tg.expand) tg.expand();
-      } catch(e){ }
+    const tg = window.Telegram.WebApp;
 
-      // Use the user object from initDataUnsafe (provided by Telegram webapp environment)
-      const user = tg.initDataUnsafe?.user || null;
+    // Agar Telegram ichida ochilmagan bo‘lsa
+    if (!tg || !tg.initDataUnsafe) {
+      document.getElementById('info').innerText = 'Iltimos, ushbu sahifani faqat Telegram ichidagi bot orqali oching!';
+      return;
+    }
 
-      const displayNameEl = document.getElementById('displayName');
-      const usernameEl = document.getElementById('username');
-      const avatarEl = document.getElementById('avatar');
-      const infoEl = document.getElementById('info');
+    // Tayyor ekanligini bildirish
+    tg.ready();
+    tg.expand();
 
-      if (user) {
-        const name = (user.first_name || '') + (user.last_name ? (' ' + user.last_name) : '');
-        displayNameEl.innerText = name || 'User';
-        usernameEl.innerText = user.username ? ('@' + user.username) : '(no username)';
+    // Foydalanuvchi ma'lumotlarini olish
+    const user = tg.initDataUnsafe.user;
 
-        // user.photo_url may be available in WebApp context
-        if (user.photo_url) {
-          avatarEl.src = user.photo_url;
-        } else {
-          // fallback generic avatar
-          avatarEl.src = 'https://cdn-icons-png.flaticon.com/512/6596/6596121.png';
-        }
+    const displayNameEl = document.getElementById('displayName');
+    const usernameEl = document.getElementById('username');
+    const avatarEl = document.getElementById('avatar');
+    const infoEl = document.getElementById('info');
 
-        infoEl.innerText = 'Hello! Your id: ' + (user.id || 'unknown') + '\nLanguage: ' + (user.language_code || 'unknown');
+    if (user) {
+      // Ism familiya
+      const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+      displayNameEl.innerText = fullName || 'Foydalanuvchi';
+
+      // Username
+      usernameEl.innerText = user.username ? `@${user.username}` : '(username yo‘q)';
+
+      // Rasm (photo_url faqat premium yoki ruxsat berilgan foydalanuvchilarda bo‘lishi mumkin)
+      if (user.photo_url) {
+        avatarEl.src = user.photo_url;
       } else {
-        displayNameEl.innerText = 'Unknown user';
-        usernameEl.innerText = '';
-        avatarEl.src = 'https://cdn-icons-png.flaticon.com/512/6596/6596121.png';
-        infoEl.innerText = 'No user data available. Make sure you opened the mini app from Telegram.';
+        avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName || 'User')}&background=0088cc&color=fff&size=256&bold=true`;
       }
 
-      // Send a data string back to the bot when button pressed
-      document.getElementById('send').addEventListener('click', () => {
-        const payload = { action: 'hello_from_webapp', user: user };
-        try {
-          tg.sendData(JSON.stringify(payload)); // bot will receive update with web_app_data
-        } catch(err) {
-          alert('sendData failed: ' + err.message);
-        }
-      });
-
-      // Close button
-      document.getElementById('close').addEventListener('click', () => {
-        try { tg.close(); } catch(e) { window.close(); }
-      });
+      // Qo‘shimcha ma'lumotlar
+      infoEl.innerText = `ID: ${user.id}\nTili: ${user.language_code || 'noma\'lum'}\nPremium: ${user.is_premium ? 'Ha' : 'Yo‘q'}`;
+    } else {
+      displayNameEl.innerText = 'Noma\'lum foydalanuvchi';
+      infoEl.innerText = 'Foydalanuvchi ma\'lumotlari mavjud emas.\nBotdan /start bosib qayta kirib ko‘ring.';
     }
+
+    // Botga ma'lumot yuborish
+    document.getElementById('send').addEventListener('click', () => {
+      const payload = {
+        action: 'hello',
+        user: user || null,
+        text: 'Salom, men mini app dan keldim!'
+      };
+      tg.sendData(JSON.stringify(payload));
+    });
+
+    // Yopish
+    document.getElementById('close').addEventListener('click', () => {
+      tg.close();
+    });
   </script>
 </body>
 </html>
