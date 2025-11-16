@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Telegram Mini App</title>
+  <style>
+    body{font-family:Inter, system-ui, sans-serif; padding:20px; max-width:720px; margin:auto}
+    .card{padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+    .avatar{width:96px;height:96px;border-radius:50%;object-fit:cover;border:2px solid #eee}
+    .row{display:flex;gap:16px;align-items:center}
+    button{padding:10px 14px;border-radius:10px;border:0;cursor:pointer}
+  </style>
+</head>
+<body>
+  <h1>My Telegram Mini App</h1>
+  <div class="card">
+    <div class="row">
+      <img id="avatar" class="avatar" src="" alt="avatar">
+      <div>
+        <div id="displayName" style="font-weight:700;font-size:18px">User</div>
+        <div id="username" style="color:#666">@username</div>
+      </div>
+    </div>
+    <hr style="margin:12px 0">
+    <div id="info" style="color:#444">Loading...</div>
+    <div style="margin-top:12px">
+      <button id="send" style="background:#007bff;color:white">Send data to bot</button>
+      <button id="close" style="background:#eee;margin-left:8px">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // --- safety: guard if not inside Telegram ---
+    const tg = window.Telegram?.WebApp;
+    if (!tg) {
+      document.getElementById('info').innerText = 'Open this page from your bot (inside Telegram) or use the "Open App" button in bot profile.';
+    } else {
+      try {
+        // Expand view
+        if (tg.expand) tg.expand();
+      } catch(e){ }
+
+      // Use the user object from initDataUnsafe (provided by Telegram webapp environment)
+      const user = tg.initDataUnsafe?.user || null;
+
+      const displayNameEl = document.getElementById('displayName');
+      const usernameEl = document.getElementById('username');
+      const avatarEl = document.getElementById('avatar');
+      const infoEl = document.getElementById('info');
+
+      if (user) {
+        const name = (user.first_name || '') + (user.last_name ? (' ' + user.last_name) : '');
+        displayNameEl.innerText = name || 'User';
+        usernameEl.innerText = user.username ? ('@' + user.username) : '(no username)';
+
+        // user.photo_url may be available in WebApp context
+        if (user.photo_url) {
+          avatarEl.src = user.photo_url;
+        } else {
+          // fallback generic avatar
+          avatarEl.src = 'https://cdn-icons-png.flaticon.com/512/6596/6596121.png';
+        }
+
+        infoEl.innerText = 'Hello! Your id: ' + (user.id || 'unknown') + '\nLanguage: ' + (user.language_code || 'unknown');
+      } else {
+        displayNameEl.innerText = 'Unknown user';
+        usernameEl.innerText = '';
+        avatarEl.src = 'https://cdn-icons-png.flaticon.com/512/6596/6596121.png';
+        infoEl.innerText = 'No user data available. Make sure you opened the mini app from Telegram.';
+      }
+
+      // Send a data string back to the bot when button pressed
+      document.getElementById('send').addEventListener('click', () => {
+        const payload = { action: 'hello_from_webapp', user: user };
+        try {
+          tg.sendData(JSON.stringify(payload)); // bot will receive update with web_app_data
+        } catch(err) {
+          alert('sendData failed: ' + err.message);
+        }
+      });
+
+      // Close button
+      document.getElementById('close').addEventListener('click', () => {
+        try { tg.close(); } catch(e) { window.close(); }
+      });
+    }
+  </script>
+</body>
+</html>
