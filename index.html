@@ -3,51 +3,47 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Mening Mini App</title>
+  <title>User Info</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body {font-family: system-ui, sans-serif; background: #f0f2f5; padding: 20px; margin:0}
-    .card {background: white; border-radius: 20px; padding: 24px; max-width: 420px; margin: 20px auto; box-shadow: 0 8px 32px rgba(0,0,0,0.12);}
-    .avatar {width: 100px; height: 100px; border-radius: 50%; border: 5px solid #fff; box-shadow: 0 6px 20px rgba(0,0,0,0.15);}
-    .name {font-size: 24px; font-weight: 700; margin: 16px 0 6px; text-align:center;}
-    .username {font-size: 18px; color: #777; text-align:center;}
-    .info {margin-top: 20px; background: #f8f9fa; padding: 16px; border-radius: 12px; line-height: 1.8; font-size: 15px;}
-    button {margin-top: 20px; padding: 14px 24px; border: none; border-radius: 14px; font-weight: 600; cursor: pointer; font-size: 16px;}
-    .btn1 {background: #229ed9; color: white;}
-    .btn2 {background: #e4e6eb; color: #1c1e21; margin-left: 12px;}
-    .center {text-align: center;}
+    body {margin:0; font-family:system-ui,sans-serif; background:#0e1621; color:white; padding:20px; min-height:100vh;}
+    .card {background:rgba(255,255,255,0.1); backdrop-filter:blur(12px); border-radius:20px; padding:24px; max-width:420px; margin:40px auto; text-align:center;}
+    .avatar {width:120px; height:120px; border-radius:50%; border:5px solid #229ed9; margin-bottom:16px;}
+    .name {font-size:26px; font-weight:800; margin:12px 0 6px;}
+    .username {font-size:19px; color:#8aadf4; margin-bottom:20px;}
+    .info {background:rgba(255,255,255,0.08); padding:16px; border-radius:14px; text-align:left; line-height:1.9; font-size:15px;}
+    .btn {margin-top:24px; padding:14px 28px; border:none; border-radius:14px; font-weight:700; cursor:pointer; font-size:16px;}
+    .send {background:#229ed9; color:white;}
+    .close {background:#4b5563; color:white; margin-left:12px;}
   </style>
 </head>
 <body>
 
   <div class="card">
-    <div class="center">
-      <img id="avatar" class="avatar" src="" alt="Avatar">
-      <div id="name" class="name">Yuklanmoqda...</div>
-      <div id="username" class="username">@username</div>
-    </div>
+    <img id="avatar" class="avatar" src="" alt="Avatar">
+    <div id="name" class="name">Yuklanmoqda...</div>
+    <div id="username" class="username">@username</div>
 
     <div id="info" class="info">Maʼlumotlar yuklanmoqda...</div>
 
-    <div class="center">
-      <button class="btn1" id="send">Botga salom yuborish</button>
-      <button class="btn2" id="close">Yopish</button>
+    <div>
+      <button id="send" class="btn send">Botga maʼlumot yuborish</button>
+      <button id="close" class="btn close">Yopish</button>
     </div>
   </div>
 
   <script>
     const tg = window.Telegram.WebApp;
 
-    // Telegram tayyorligini bildirish
+    // Telegram tayyor
     tg.ready();
     tg.expand();
 
-    // Foydalanuvchi ma'lumotlarini ko'rsatish funksiyasi
-    function renderUser() {
+    function showUserInfo() {
       const user = tg.initDataUnsafe?.user;
 
       if (!user || !user.id) {
-        document.getElementById('info').innerHTML = '<b style="color:red">Xatolik:</b> Foydalanuvchi maʼlumotlari topilmadi.<br>Bot orqali qayta kirib koʻring.';
+        document.getElementById('info').innerHTML = '<span style="color:#ff6b6b">Foydalanuvchi maʼlumotlari topilmadi.<br>Bot orqali qayta kirib koʻring!</span>';
         return;
       }
 
@@ -59,44 +55,39 @@
       document.getElementById('username').textContent = user.username ? `@${user.username}` : '(username yoʻq)';
 
       // Avatar
-      const avatarEl = document.getElementById('avatar');
+      const avatar = document.getElementById('avatar');
       if (user.photo_url) {
-        avatarEl.src = user.photo_url;
+        avatar.src = user.photo_url + '?size=512'; // eng katta sifat
       } else {
-        // Telegram rangiga mos avatar generatsiya
-        avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=229ed9&color=fff&size=256&bold=true&rounded=true`;
+        avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=229ed9&color=fff&size=512&bold=true&rounded=true`;
       }
 
-      // Qoʻshimcha maʼlumotlar (faqat initData dan!)
+      // Barcha initData maʼlumotlari
       document.getElementById('info').innerHTML = `
         <b>User ID:</b> ${user.id}<br>
+        <b>Ism:</b> ${user.first_name || ''} ${user.last_name || ''}<br>
+        <b>Username:</b> ${user.username ? '@'+user.username : 'yoʻq'}<br>
         <b>Tili:</b> ${user.language_code || 'nomaʼlum'}<br>
         <b>Premium:</b> ${user.is_premium ? 'Ha' : 'Yoʻq'}<br>
-        <b>Bot ruxsati:</b> ${user.allows_write_to_pm ? 'Ha' : 'Yoʻq'}<br>
-        <b>InitData (xom):</b> <small style="word-break:break-all; color:#0066cc;">${tg.initData}</small>
+        <b>Botga yozish ruxsati:</b> ${user.allows_write_to_pm ? 'Ha' : 'Yoʻq'}<br>
+        <b>Kirish vaqti:</b> ${new Date().toLocaleString('uz-UZ')}
       `;
     }
 
-    // 1. Darhol koʻrsatish
-    renderUser();
+    // 3 ta usul bilan 100% chiqishini taʼminlaymiz
+    showUserInfo();                                   // 1-darhol
+    tg.onEvent('viewportChanged', showUserInfo);      // 2-event
+    tg.onEvent('themeChanged', showUserInfo);         // 3-event
+    setTimeout(showUserInfo, 700);                    // 4-eng ishonchli
 
-    // 2. Agar kechiksa — eventlarni tinglash (2025-yilda majburiy!)
-    tg.onEvent('viewportChanged', renderUser);
-    tg.onEvent('themeChanged', renderUser);
-
-    // 3. Eng ishonchli — 800 ms kutib qayta urinish
-    setTimeout(renderUser, 800);
-
-    // Botga ma'lumot yuborish (faqat initData orqali)
+    // Botga faqat initData orqali maʼlumot yuborish
     document.getElementById('send').onclick = () => {
-      const payload = {
-        action: "user_hello",
-        from_miniapp: true,
+      tg.sendData(JSON.stringify({
+        from: "pure_frontend_miniapp",
         user: tg.initDataUnsafe.user,
-        initData: tg.initData  // bot bu orqali 100% tekshiradi
-      };
-      tg.sendData(JSON.stringify(payload));
-      tg.showAlert('Maʼlumot botga muvaffaqiyatli yuborildi!');
+        raw_init_data: tg.initData
+      }));
+      tg.showAlert('Maʼlumot botga yuborildi!');
     };
 
     document.getElementById('close').onclick = () => tg.close();
