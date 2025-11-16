@@ -1,96 +1,105 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="uz">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>My Telegram Mini App</title>
+  <title>Mening Mini App</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body{font-family:Inter,system-ui,sans-serif;padding:20px;max-width:720px;margin:auto;background:#f8f9fa}
-    .card{padding:20px;border-radius:16px;background:white;box-shadow:0 8px 25px rgba(0,0,0,0.08)}
-    .avatar{width:100px;height:100px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
-    .row{display:flex;gap:20px;align-items:center;margin-bottom:16px}
-    button{padding:12px 20px;border-radius:12px;border:0;cursor:pointer;font-weight:600;margin-right:10px}
-    .btn-primary{background:#0088cc;color:white}
-    .btn-secondary{background:#e4e6eb;color:#1c1e21}
-    #info{white-space:pre-line;color:#555;line-height:1.5}
+    body {font-family: system-ui, sans-serif; background: #f0f2f5; padding: 20px; margin:0}
+    .card {background: white; border-radius: 20px; padding: 24px; max-width: 420px; margin: 20px auto; box-shadow: 0 8px 32px rgba(0,0,0,0.12);}
+    .avatar {width: 100px; height: 100px; border-radius: 50%; border: 5px solid #fff; box-shadow: 0 6px 20px rgba(0,0,0,0.15);}
+    .name {font-size: 24px; font-weight: 700; margin: 16px 0 6px; text-align:center;}
+    .username {font-size: 18px; color: #777; text-align:center;}
+    .info {margin-top: 20px; background: #f8f9fa; padding: 16px; border-radius: 12px; line-height: 1.8; font-size: 15px;}
+    button {margin-top: 20px; padding: 14px 24px; border: none; border-radius: 14px; font-weight: 600; cursor: pointer; font-size: 16px;}
+    .btn1 {background: #229ed9; color: white;}
+    .btn2 {background: #e4e6eb; color: #1c1e21; margin-left: 12px;}
+    .center {text-align: center;}
   </style>
 </head>
 <body>
-  <h1 style="text-align:center">Telegram Mini App</h1>
+
   <div class="card">
-    <div class="row">
-      <img id="avatar" class="avatar" src="https://cdn-icons-png.flaticon.com/512/6596/6596121.png" alt="avatar">
-      <div>
-        <div id="displayName" style="font-weight:700;font-size:20px">Yuklanmoqda...</div>
-        <div id="username" style="color:#777;font-size:15px">@username</div>
-      </div>
+    <div class="center">
+      <img id="avatar" class="avatar" src="" alt="Avatar">
+      <div id="name" class="name">Yuklanmoqda...</div>
+      <div id="username" class="username">@username</div>
     </div>
-    <hr>
-    <div id="info">Ma'lumotlar yuklanmoqda...</div>
-    <div style="margin-top:20px">
-      <button id="send" class="btn-primary">Botga ma'lumot yuborish</button>
-      <button id="close" class="btn-secondary">Yopish</button>
+
+    <div id="info" class="info">Maʼlumotlar yuklanmoqda...</div>
+
+    <div class="center">
+      <button class="btn1" id="send">Botga salom yuborish</button>
+      <button class="btn2" id="close">Yopish</button>
     </div>
   </div>
 
   <script>
     const tg = window.Telegram.WebApp;
 
-    // Agar Telegram ichida ochilmagan bo‘lsa
-    if (!tg || !tg.initDataUnsafe) {
-      document.getElementById('info').innerText = 'Iltimos, ushbu sahifani faqat Telegram ichidagi bot orqali oching!';
-      return;
-    }
-
-    // Tayyor ekanligini bildirish
+    // Telegram tayyorligini bildirish
     tg.ready();
     tg.expand();
 
-    // Foydalanuvchi ma'lumotlarini olish
-    const user = tg.initDataUnsafe.user;
+    // Foydalanuvchi ma'lumotlarini ko'rsatish funksiyasi
+    function renderUser() {
+      const user = tg.initDataUnsafe?.user;
 
-    const displayNameEl = document.getElementById('displayName');
-    const usernameEl = document.getElementById('username');
-    const avatarEl = document.getElementById('avatar');
-    const infoEl = document.getElementById('info');
+      if (!user || !user.id) {
+        document.getElementById('info').innerHTML = '<b style="color:red">Xatolik:</b> Foydalanuvchi maʼlumotlari topilmadi.<br>Bot orqali qayta kirib koʻring.';
+        return;
+      }
 
-    if (user) {
-      // Ism familiya
-      const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
-      displayNameEl.innerText = fullName || 'Foydalanuvchi';
+      // Ism-familiya
+      const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Foydalanuvchi';
+      document.getElementById('name').textContent = fullName;
 
       // Username
-      usernameEl.innerText = user.username ? `@${user.username}` : '(username yo‘q)';
+      document.getElementById('username').textContent = user.username ? `@${user.username}` : '(username yoʻq)';
 
-      // Rasm (photo_url faqat premium yoki ruxsat berilgan foydalanuvchilarda bo‘lishi mumkin)
+      // Avatar
+      const avatarEl = document.getElementById('avatar');
       if (user.photo_url) {
         avatarEl.src = user.photo_url;
       } else {
-        avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName || 'User')}&background=0088cc&color=fff&size=256&bold=true`;
+        // Telegram rangiga mos avatar generatsiya
+        avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=229ed9&color=fff&size=256&bold=true&rounded=true`;
       }
 
-      // Qo‘shimcha ma'lumotlar
-      infoEl.innerText = `ID: ${user.id}\nTili: ${user.language_code || 'noma\'lum'}\nPremium: ${user.is_premium ? 'Ha' : 'Yo‘q'}`;
-    } else {
-      displayNameEl.innerText = 'Noma\'lum foydalanuvchi';
-      infoEl.innerText = 'Foydalanuvchi ma\'lumotlari mavjud emas.\nBotdan /start bosib qayta kirib ko‘ring.';
+      // Qoʻshimcha maʼlumotlar (faqat initData dan!)
+      document.getElementById('info').innerHTML = `
+        <b>User ID:</b> ${user.id}<br>
+        <b>Tili:</b> ${user.language_code || 'nomaʼlum'}<br>
+        <b>Premium:</b> ${user.is_premium ? 'Ha' : 'Yoʻq'}<br>
+        <b>Bot ruxsati:</b> ${user.allows_write_to_pm ? 'Ha' : 'Yoʻq'}<br>
+        <b>InitData (xom):</b> <small style="word-break:break-all; color:#0066cc;">${tg.initData}</small>
+      `;
     }
 
-    // Botga ma'lumot yuborish
-    document.getElementById('send').addEventListener('click', () => {
+    // 1. Darhol koʻrsatish
+    renderUser();
+
+    // 2. Agar kechiksa — eventlarni tinglash (2025-yilda majburiy!)
+    tg.onEvent('viewportChanged', renderUser);
+    tg.onEvent('themeChanged', renderUser);
+
+    // 3. Eng ishonchli — 800 ms kutib qayta urinish
+    setTimeout(renderUser, 800);
+
+    // Botga ma'lumot yuborish (faqat initData orqali)
+    document.getElementById('send').onclick = () => {
       const payload = {
-        action: 'hello',
-        user: user || null,
-        text: 'Salom, men mini app dan keldim!'
+        action: "user_hello",
+        from_miniapp: true,
+        user: tg.initDataUnsafe.user,
+        initData: tg.initData  // bot bu orqali 100% tekshiradi
       };
       tg.sendData(JSON.stringify(payload));
-    });
+      tg.showAlert('Maʼlumot botga muvaffaqiyatli yuborildi!');
+    };
 
-    // Yopish
-    document.getElementById('close').addEventListener('click', () => {
-      tg.close();
-    });
+    document.getElementById('close').onclick = () => tg.close();
   </script>
 </body>
 </html>
