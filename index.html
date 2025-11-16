@@ -1,96 +1,119 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>User Info</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Telegram Mini App</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body {margin:0; font-family:system-ui,sans-serif; background:#0e1621; color:white; padding:20px; min-height:100vh;}
-    .card {background:rgba(255,255,255,0.1); backdrop-filter:blur(12px); border-radius:20px; padding:24px; max-width:420px; margin:40px auto; text-align:center;}
-    .avatar {width:120px; height:120px; border-radius:50%; border:5px solid #229ed9; margin-bottom:16px;}
-    .name {font-size:26px; font-weight:800; margin:12px 0 6px;}
-    .username {font-size:19px; color:#8aadf4; margin-bottom:20px;}
-    .info {background:rgba(255,255,255,0.08); padding:16px; border-radius:14px; text-align:left; line-height:1.9; font-size:15px;}
-    .btn {margin-top:24px; padding:14px 28px; border:none; border-radius:14px; font-weight:700; cursor:pointer; font-size:16px;}
-    .send {background:#229ed9; color:white;}
-    .close {background:#4b5563; color:white; margin-left:12px;}
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe Haines', Roboto, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 20px;
+      color: #000;
+    }
+    .container {
+      max-width: 400px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 0 auto 20px;
+      display: block;
+      border: 4px solid #0088cc;
+    }
+    .name {
+      font-size: 28px;
+      font-weight: bold;
+      margin: 15px 0;
+    }
+    .username {
+      font-size: 20px;
+      color: #0088cc;
+      margin: 10px 0;
+    }
+    .info {
+      margin-top: 20px;
+      font-size: 16px;
+      color: #555;
+    }
+    .raw {
+      margin-top: 30px;
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 12px;
+      font-family: monospace;
+      font-size: 12px;
+      text-align: left;
+      overflow-wrap: break-word;
+    }
   </style>
 </head>
 <body>
-
-  <div class="card">
-    <img id="avatar" class="avatar" src="" alt="Avatar">
-    <div id="name" class="name">Yuklanmoqda...</div>
-    <div id="username" class="username">@username</div>
-
-    <div id="info" class="info">Maʼlumotlar yuklanmoqda...</div>
-
-    <div>
-      <button id="send" class="btn send">Botga maʼlumot yuborish</button>
-      <button id="close" class="btn close">Yopish</button>
+  <div class="container">
+    <img id="photo" class="avatar" src="" alt="Profil rasmi" />
+    <div class="name" id="fullName">Yuklanmoqda...</div>
+    <div class="username" id="username">@username</div>
+    <div class="info">
+      <p><strong>ID:</strong> <span id="userId">-</span></p>
+    </div>
+    <div class="raw">
+      <strong>Raw initData:</strong><br>
+      <span id="rawData">...</span>
     </div>
   </div>
 
   <script>
-    const tg = window.Telegram.WebApp;
+    // Telegram WebApp tayyor bo'lguncha kutamiz
+    window.onload = function () {
+      if (window.Telegram && Telegram.WebApp) {
+        Telegram.WebApp.ready();
 
-    // Telegram tayyor
-    tg.ready();
-    tg.expand();
+        // Tema ranglarini qo'llash (ixtiyoriy)
+        document.body.style.background = Telegram.WebApp.backgroundColor || '#f0f2f5';
 
-    function showUserInfo() {
-      const user = tg.initDataUnsafe?.user;
+        const user = Telegram.WebApp.initDataUnsafe.user;
+        const initData = Telegram.WebApp.initData;
 
-      if (!user || !user.id) {
-        document.getElementById('info').innerHTML = '<span style="color:#ff6b6b">Foydalanuvchi maʼlumotlari topilmadi.<br>Bot orqali qayta kirib koʻring!</span>';
-        return;
-      }
+        if (user) {
+          // Profil rasm
+          if (user.photo_url) {
+            document.getElementById('photo').src = user.photo_url;
+          } else {
+            // Agar rasm bo'lmasa, standart avatar
+            document.getElementById('photo').src = 'https://via.placeholder.com/120/0088cc/ffffff?text=' + 
+              (user.first_name.charAt(0) + (user.last_name ? user.last_name.charAt(0) : '')).toUpperCase();
+          }
 
-      // Ism-familiya
-      const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Foydalanuvchi';
-      document.getElementById('name').textContent = fullName;
+          // Ism-familiya
+          const fullName = (user.first_name || '') + ' ' + (user.last_name || '');
+          document.getElementById('fullName').textContent = fullName.trim() || 'Noma’lum';
 
-      // Username
-      document.getElementById('username').textContent = user.username ? `@${user.username}` : '(username yoʻq)';
+          // Username
+          const username = user.username ? '@' + user.username : 'Username yo‘q';
+          document.getElementById('username').textContent = username;
 
-      // Avatar
-      const avatar = document.getElementById('avatar');
-      if (user.photo_url) {
-        avatar.src = user.photo_url + '?size=512'; // eng katta sifat
+          // User ID
+          document.getElementById('userId').textContent = user.id || '-';
+        } else {
+          document.getElementById('fullName').textContent = 'Foydalanuvchi ma’lumotlari topilmadi';
+        }
+
+        // Raw initData (debug uchun)
+        document.getElementById('rawData').textContent = initData || 'initData yo‘q';
       } else {
-        avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=229ed9&color=fff&size=512&bold=true&rounded=true`;
+        document.body.innerHTML = '<h1 style="text-align:center;margin-top:100px;">Iltimos, ushbu sahifani Telegram ichidagi Mini App sifatida oching!</h1>';
       }
-
-      // Barcha initData maʼlumotlari
-      document.getElementById('info').innerHTML = `
-        <b>User ID:</b> ${user.id}<br>
-        <b>Ism:</b> ${user.first_name || ''} ${user.last_name || ''}<br>
-        <b>Username:</b> ${user.username ? '@'+user.username : 'yoʻq'}<br>
-        <b>Tili:</b> ${user.language_code || 'nomaʼlum'}<br>
-        <b>Premium:</b> ${user.is_premium ? 'Ha' : 'Yoʻq'}<br>
-        <b>Botga yozish ruxsati:</b> ${user.allows_write_to_pm ? 'Ha' : 'Yoʻq'}<br>
-        <b>Kirish vaqti:</b> ${new Date().toLocaleString('uz-UZ')}
-      `;
-    }
-
-    // 3 ta usul bilan 100% chiqishini taʼminlaymiz
-    showUserInfo();                                   // 1-darhol
-    tg.onEvent('viewportChanged', showUserInfo);      // 2-event
-    tg.onEvent('themeChanged', showUserInfo);         // 3-event
-    setTimeout(showUserInfo, 700);                    // 4-eng ishonchli
-
-    // Botga faqat initData orqali maʼlumot yuborish
-    document.getElementById('send').onclick = () => {
-      tg.sendData(JSON.stringify({
-        from: "pure_frontend_miniapp",
-        user: tg.initDataUnsafe.user,
-        raw_init_data: tg.initData
-      }));
-      tg.showAlert('Maʼlumot botga yuborildi!');
     };
-
-    document.getElementById('close').onclick = () => tg.close();
   </script>
 </body>
 </html>
